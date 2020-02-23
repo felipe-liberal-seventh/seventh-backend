@@ -27,8 +27,8 @@ class ResponseTime {
         } else {
           return null;
         }
-      }).catch(err => {
-        return err;
+      }).catch(() => {
+        return null;
       });
   }
 }

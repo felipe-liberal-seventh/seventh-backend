@@ -18,15 +18,21 @@ class MonitoringController {
 
       const { url } = req.body;
 
+      const monitoring = await Monitoring.findOne({ url });
+
+      if (monitoring) {
+        return res.status(400).json({ error: 'Site already registered' });
+      }
+
       const responseTime = await ResponseTime.get(url);
 
-      const monitoring = await Monitoring.create({
+      const newMonitoring = await Monitoring.create({
         url,
-        available: true,
-        responseTime
+        available: responseTime ? true : false,
+        responseTime: responseTime ? responseTime : 0
       });
 
-      return res.json(monitoring);
+      return res.json(newMonitoring);
     } catch (err) {
       return res.status(500).json({ error: 'Internal server error' });
     }
@@ -37,6 +43,25 @@ class MonitoringController {
       const monitorings = await Monitoring.find();
 
       return res.json(monitorings);
+    } catch (err) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  async update(req, res) {
+    try {
+      const monitorings = await Monitoring.find();
+
+      for (const monitoring of monitorings) {
+        const responseTime = await ResponseTime.get(monitoring.url);
+
+        monitoring.available = responseTime ? true : false;
+        monitoring.responseTime = responseTime ? responseTime : 0;
+
+        await monitoring.save();
+      }
+
+      return res.json();
     } catch (err) {
       return res.status(500).json({ error: 'Internal server error' });
     }
