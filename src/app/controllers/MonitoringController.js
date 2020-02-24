@@ -48,20 +48,19 @@ class MonitoringController {
     }
   }
 
-  async update(req, res) {
+  async delete(req, res) {
     try {
-      const monitorings = await Monitoring.find();
+      const { id } = req.params;
 
-      for (const monitoring of monitorings) {
-        const responseTime = await ResponseTime.get(monitoring.url);
+      const monitoring = await Monitoring.findById(id);
 
-        monitoring.available = responseTime ? true : false;
-        monitoring.responseTime = responseTime ? responseTime : 0;
-
-        await monitoring.save();
+      if (!monitoring) {
+        return res.status(400).json({ error: 'Monitoring not found' });
       }
 
-      return res.json();
+      await Monitoring.deleteOne({ _id: id });
+
+      return res.json(true);
     } catch (err) {
       return res.status(500).json({ error: 'Internal server error' });
     }
